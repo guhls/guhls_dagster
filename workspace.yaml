@@ -1,0 +1,7 @@
+load_from:
+  - python_package:
+      package_name: guhls.dagster_docs.repository
+      location_name: dagster_docs_repos
+  - python_package:
+      package_name: guhls.workspace.repository
+      location_name: guhls_repos
