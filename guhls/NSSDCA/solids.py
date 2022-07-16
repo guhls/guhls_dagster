@@ -4,7 +4,7 @@ from dagster import op
 
 
 @op
-def table_html_to_df(context):
+def planetary_fact_sheet(context):
     table = pd.read_html("https://nssdc.gsfc.nasa.gov/planetary/factsheet/")
 
     table = table[0].transpose()
@@ -20,4 +20,4 @@ def table_html_to_df(context):
 
 if __name__ == '__main__':
     from dagster import execute_solid
-    execute_solid(table_html_to_df)
+    execute_solid(planetary_fact_sheet)
