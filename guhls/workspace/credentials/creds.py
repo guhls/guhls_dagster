@@ -14,8 +14,11 @@ dirname = os.path.dirname(__file__)
 filename_credentials = os.path.join(dirname, 'credentials.json')
 filename_token = os.path.join(dirname, 'token.json')
 
-with open(filename_credentials, 'r') as file:
-    client_config = json.load(file)
+with open(filename_credentials, 'r') as credential_file:
+    client_config = json.load(credential_file)
+
+with open(filename_token, 'r') as token_file:
+    info = json.load(token_file)
 
 
 def get_creds():
@@ -24,7 +27,7 @@ def get_creds():
     # created automatically when the authorization flow completes for the first
     # time.
     if os.path.exists(filename_token):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+        creds = Credentials.from_authorized_user_info(info, SCOPES)
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
