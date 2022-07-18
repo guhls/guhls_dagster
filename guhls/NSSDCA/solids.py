@@ -10,7 +10,7 @@ def planetary_fact_sheet(context):
     table = table[0].transpose()
     df = pd.DataFrame(data=table.values[1:].tolist(), columns=table.values[0].tolist())
 
-    df.columns.values[0] = "Planets"
+    df.columns.values[0] = "Celestial Bodies"
     df = df.drop(df.columns[[-1]], axis=1)
 
     context.log.info(f"{len(df)} rows in dataframe")
