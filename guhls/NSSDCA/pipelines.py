@@ -1,5 +1,6 @@
 from guhls.NSSDCA.solids import planetary_fact_sheet
 from guhls.common.solids import df_to_s3
+from guhls.google_sheets.solids import s3_to_gsheet
 from dagster import pipeline
 
 
@@ -7,6 +8,7 @@ from dagster import pipeline
 def nssdca_pipe():
     df = planetary_fact_sheet()
     df_to_s3(df)
+    s3_to_gsheet(df)
 
 
 if __name__ == '__main__':
