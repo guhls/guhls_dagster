@@ -21,7 +21,7 @@ if __name__ == '__main__':
                     "config": {
                         "bucket": "guhls-storage",
                         "prefix": "planet_facts.parquet",
-                        "endpoint": "http://192.168.0.107:9000",
+                        "endpoint": "http://192.168.0.108:9000",
                     }
                 }
             }
