@@ -1,4 +1,4 @@
-from dagster import Field, String, Output, solid
+from dagster import Field, String, Output, solid, AssetMaterialization, MetadataValue
 
 
 @solid(
@@ -8,13 +8,29 @@ from dagster import Field, String, Output, solid
         "endpoint": Field(String, is_required=False),
     }
 )
-def df_to_s3(context, df):
+def df_to_s3(context, df, url):
     bucket = context.op_config.get('bucket')
     prefix = context.op_config.get('prefix')
     endpoint_url = context.op_config.get('endpoint')
 
     storage_options = {'client_kwargs': {'endpoint_url': endpoint_url}}
 
-    df.to_parquet(f"s3://{bucket}/{prefix}", storage_options=storage_options)
+    path_s3 = f"s3://{bucket}/{prefix}"
+
+    df.to_parquet(path_s3, storage_options=storage_options)
+
+    context.log_event(
+        AssetMaterialization(
+            asset_key="dataset",
+            description="Result to my storage",
+            metadata={
+                "text_metadata": "metadata for dataset storage in S3",
+                "path": MetadataValue.path(path_s3),
+                "dashboard_url": MetadataValue.url(
+                    url
+                )
+            }
+        )
+    )
 
     yield Output(None)

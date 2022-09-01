@@ -6,8 +6,8 @@ from dagster import pipeline
 
 @pipeline()
 def nssdca_pipe():
-    df = planetary_fact_sheet()
-    df_to_s3(df)
+    df, url = planetary_fact_sheet()
+    df_to_s3(df, url)
     s3_to_gsheet(df)
 
 
@@ -19,9 +19,8 @@ if __name__ == '__main__':
             "solids": {
                 "df_to_s3": {
                     "config": {
-                        "bucket": "guhls-storage",
+                        "bucket": "guhls-dagster",
                         "prefix": "planet_facts.parquet",
-                        "endpoint": "http://192.168.0.108:9000",
                     }
                 }
             }

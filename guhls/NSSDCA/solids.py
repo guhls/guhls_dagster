@@ -1,11 +1,13 @@
 import pandas as pd
 
-from dagster import op
+from dagster import op, Output, Out
 
 
-@op
+@op(out={"df": Out(), "url": Out()})
 def planetary_fact_sheet(context):
-    table = pd.read_html("https://nssdc.gsfc.nasa.gov/planetary/factsheet/")
+    url = "https://nssdc.gsfc.nasa.gov/planetary/factsheet/"
+
+    table = pd.read_html(url)
 
     table = table[0].transpose()
     df = pd.DataFrame(data=table.values[1:].tolist(), columns=table.values[0].tolist())
@@ -15,7 +17,7 @@ def planetary_fact_sheet(context):
 
     context.log.info(f"{len(df)} rows in dataframe")
 
-    return df
+    return Output(df), Output(url)
 
 
 if __name__ == '__main__':
