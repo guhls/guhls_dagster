@@ -7,8 +7,8 @@ from dagster import pipeline
 @pipeline()
 def nssdca_pipe():
     df, url = planetary_fact_sheet()
-    df_to_s3(df, url)
-    s3_to_gsheet(df)
+    url_s3 = df_to_s3(df, url)
+    s3_to_gsheet(df, url_s3)
 
 
 if __name__ == '__main__':

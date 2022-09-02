@@ -1,12 +1,23 @@
-from dagster import Field, String, Output, solid, AssetMaterialization, MetadataValue
+from dagster import (
+    Field,
+    String,
+    Out,
+    OutputDefinition,
+    Output,
+    op,
+    solid,
+    AssetMaterialization,
+    MetadataValue,
+)
 
 
-@solid(
+@op(
     config_schema={
         "bucket": Field(String, is_required=True, description="Just the bucket ex: my-bucket"),
         "prefix": Field(String, is_required=True, description="Just prefix ex: my/path/data.parquet"),
         "endpoint": Field(String, is_required=False),
-    }
+    },
+    out={"url_s3": Out()}
 )
 def df_to_s3(context, df, url):
     bucket = context.op_config.get('bucket')
@@ -26,11 +37,9 @@ def df_to_s3(context, df, url):
             metadata={
                 "text_metadata": "metadata for dataset storage in S3",
                 "path": MetadataValue.path(path_s3),
-                "dashboard_url": MetadataValue.url(
-                    url
-                )
+                "dashboard_url": MetadataValue.url(url)
             }
         )
     )
 
-    yield Output(None)
+    return Output(path_s3),
