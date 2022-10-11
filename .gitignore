@@ -154,3 +154,7 @@ cython_debug/
 # json Credentials
 token.json
 credentials.json
+
+# My exceptions
+*.sqlite3
+

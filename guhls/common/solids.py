@@ -13,6 +13,7 @@ import requests
 import pandas as pd
 from dagster import execute_solid
 
+
 @op(
     config_schema={
         "bucket": Field(String, is_required=True, description="Just the bucket ex: my-bucket"),
