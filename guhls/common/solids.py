@@ -11,6 +11,7 @@ from dagster import (
 )
 import requests
 import pandas as pd
+from dagster import execute_solid
 
 @op(
     config_schema={
@@ -49,26 +50,30 @@ def df_to_s3(context, df, url):
 @op(config_schema={
     "url": Field(
         String,
-        is_required=True,
-        default_value="https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty"
+        is_required=False,
+        description="If not provides will return the last item data by default"
     )
 })
 def get_data_from_hacker_news_api(context):
     url = context.solid_config.get('url')
 
-    response = requests.get(url)
-    response_data = response.json()
+    if url is None:
+        url_last_item = "https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty"
+        id_last_item = requests.get(url_last_item).text.replace('\n', '')
+        url = f"https://hacker-news.firebaseio.com/v0/item/{id_last_item}.json?print=pretty"
+
+    resp = requests.get(url)
+    response_data = resp.json()
 
     return pd.read_json(response_data)
 
 
-from dagster import execute_solid
 if __name__ == '__main__':
     execute_solid(get_data_from_hacker_news_api, run_config={
         "solids": {
             "get_data_from_hacker_news_api": {
                 "config": {
-                    "url": "https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty"
+
                 }
             }
         }
