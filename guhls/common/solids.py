@@ -9,7 +9,8 @@ from dagster import (
     AssetMaterialization,
     MetadataValue,
 )
-
+import requests
+import pandas as pd
 
 @op(
     config_schema={
@@ -42,4 +43,33 @@ def df_to_s3(context, df, url):
         )
     )
 
-    return Output(path_s3),
+    return Output(path_s3)
+
+
+@op(config_schema={
+    "url": Field(
+        String,
+        is_required=True,
+        default_value="https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty"
+    )
+})
+def get_data_from_hacker_news_api(context):
+    url = context.solid_config.get('url')
+
+    response = requests.get(url)
+    response_data = response.json()
+
+    return pd.read_json(response_data)
+
+
+from dagster import execute_solid
+if __name__ == '__main__':
+    execute_solid(get_data_from_hacker_news_api, run_config={
+        "solids": {
+            "get_data_from_hacker_news_api": {
+                "config": {
+                    "url": "https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty"
+                }
+            }
+        }
+    })
