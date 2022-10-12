@@ -3,8 +3,6 @@ import os
 from pathlib import Path
 import pandas as pd
 from sqlalchemy import create_engine
-from airflow.decorators import task
-from airflow.operators.python import get_current_context
 
 
 def create_db():
@@ -51,10 +49,7 @@ def load_df_to_dwh(df_final):
     df_final.to_sql("client_with_username", con=engine, if_exists="replace")
 
 
-@task.python
 def etl_pipe():
-    context = get_current_context()
-    ti = context["ti"]
     conn = create_db()
     df = extract_from_db(table_name="client", conn=conn)
     df_final = transform_split_email_field(df)

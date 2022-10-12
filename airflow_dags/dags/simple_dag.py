@@ -14,5 +14,3 @@ simple_etl = PythonOperator(
     python_callable=etl_pipe,
     dag=dag,
 )
-
-simple_etl.set_upstream(etl_pipe())
