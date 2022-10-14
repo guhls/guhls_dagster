@@ -2,16 +2,13 @@ from dagster import (
     Field,
     String,
     Out,
-    OutputDefinition,
     Output,
     op,
-    solid,
+    job,
     AssetMaterialization,
     MetadataValue,
 )
 import requests
-import pandas as pd
-from dagster import execute_solid
 
 
 @op(
@@ -49,32 +46,52 @@ def df_to_s3(context, df, url):
 
 
 @op(config_schema={
-    "url": Field(
+    "endpoint": Field(
         String,
-        is_required=False,
-        description="If not provides will return the last item data by default"
+        is_required=True,
+        description="Endpoint fix of the API within path Ex: 'https:subdomain-url/domain.com/'"
+    ),
+    "path": Field(
+        String,
+        is_required=True,
+        description="Rest of the url that will attached to endpoint Ex: 'search/maxitem'"
+    ),
+    "params": Field(
+        dict,
+        is_required=True,
+        description="Parameters that go in url requisition"
     )
 })
-def get_data_from_hacker_news_api(context):
-    url = context.solid_config.get('url')
+def get_data_from_api(context):
+    endpoint = context.solid_config.get('endpoint')
+    path = context.solid_config.get('path')
+    params = context.solid_config.get('params')
 
-    if url is None:
-        url_last_item = "https://hacker-news.firebaseio.com/v0/maxitem.json?print=pretty"
-        id_last_item = requests.get(url_last_item).text.replace('\n', '')
-        url = f"https://hacker-news.firebaseio.com/v0/item/{id_last_item}.json?print=pretty"
+    url_endpoint = endpoint + path
 
-    resp = requests.get(url)
-    response_data = resp.json()
+    if params:
+        url_endpoint += "?"
+        lst_params = []
+        for key, value in params.items():
+            lst_params.append(f"{key}={value}")
+        url_endpoint += "&".join(lst_params)
 
-    return pd.read_json(response_data)
+    data = requests.get(url_endpoint).json()
+    return data
 
 
 if __name__ == '__main__':
-    execute_solid(get_data_from_hacker_news_api, run_config={
-        "solids": {
-            "get_data_from_hacker_news_api": {
-                "config": {
+    @job
+    def execute_ops():
+        get_data_from_api()
 
+    execute_ops.execute_in_process(run_config={
+        "solids": {
+            "get_data_from_api": {
+                "config": {
+                    "endpoint": "https://hacker-news.firebaseio.com/v0/",
+                    "path": "maxitem.json",
+                    "params": {"print": "pretty"}
                 }
             }
         }
