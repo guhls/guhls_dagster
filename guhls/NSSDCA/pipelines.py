@@ -1,10 +1,10 @@
 from guhls.NSSDCA.solids import planetary_fact_sheet
 from guhls.common.solids import df_to_s3
 from guhls.google_sheets.solids import s3_to_gsheet
-from dagster import pipeline
+from dagster import job
 
 
-@pipeline()
+@job
 def nssdca_pipe():
     df, url = planetary_fact_sheet()
     url_s3 = df_to_s3(df, url)

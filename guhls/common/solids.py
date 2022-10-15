@@ -19,7 +19,7 @@ import requests
     },
     out={"url_s3": Out()}
 )
-def df_to_s3(context, df, url):
+def df_to_s3(context, df, url=None):
     bucket = context.op_config.get('bucket')
     prefix = context.op_config.get('prefix')
     endpoint_url = context.op_config.get('endpoint')
@@ -60,38 +60,53 @@ def df_to_s3(context, df, url):
         dict,
         is_required=True,
         description="Parameters that go in url requisition"
+    ),
+    "headers": Field(
+        dict,
+        is_required=False,
     )
 })
 def get_data_from_api(context):
     endpoint = context.solid_config.get('endpoint')
     path = context.solid_config.get('path')
     params = context.solid_config.get('params')
+    headers = context.solid_config.get('headers')
 
     url_endpoint = endpoint + path
 
-    if params:
-        url_endpoint += "?"
-        lst_params = []
-        for key, value in params.items():
-            lst_params.append(f"{key}={value}")
-        url_endpoint += "&".join(lst_params)
-
-    data = requests.get(url_endpoint).json()
-    return data
+    resp = requests.get(url_endpoint, params=params, headers=headers).json()
+    return resp
 
 
 if __name__ == '__main__':
-    @job
-    def execute_ops():
-        get_data_from_api()
+    from guhls.yelp.pipelines import yelp_data_pipe
+    from dotenv import load_dotenv
+    import os
 
-    execute_ops.execute_in_process(run_config={
+    load_dotenv()
+    API_KEY = os.environ.get('API_KEY')
+    BUCKET = os.environ.get('BUCKET')
+    PREFIX = os.environ.get('PREFIX')
+
+    yelp_data_pipe.execute_in_process(run_config={
         "solids": {
             "get_data_from_api": {
                 "config": {
-                    "endpoint": "https://hacker-news.firebaseio.com/v0/",
-                    "path": "maxitem.json",
-                    "params": {"print": "pretty"}
+                    "endpoint": "https://api.yelp.com/v3/",
+                    "path": "businesses/search",
+                    "params": {"term": "bars", "location": "São Paulo"},
+                    "headers": {"Authorization": f"Bearer {API_KEY}"}
+                }
+            },
+            "transform_data_from_yelp": {
+                "config": {
+                    "categories": True
+                }
+            },
+            "df_to_s3": {
+                "config": {
+                    "bucket": BUCKET,
+                    "prefix": PREFIX,
                 }
             }
         }
