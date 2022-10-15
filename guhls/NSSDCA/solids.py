@@ -3,8 +3,8 @@ import pandas as pd
 from dagster import op, Output, Out
 
 
-@op(out={"df": Out(), "url": Out()})
-def planetary_fact_sheet(context):
+@op(out={"df": Out()})
+def planetary_fact_sheet():
     url = "https://nssdc.gsfc.nasa.gov/planetary/factsheet/"
 
     table = pd.read_html(url)
@@ -15,11 +15,14 @@ def planetary_fact_sheet(context):
     df.columns.values[0] = "Celestial Bodies"
     df = df.drop(df.columns[[-1]], axis=1)
 
-    context.log.info(f"{len(df)} rows in dataframe")
-
-    return Output(df), Output(url)
+    return Output(df)
 
 
 if __name__ == '__main__':
-    from dagster import execute_solid
-    execute_solid(planetary_fact_sheet)
+    from dagster import job
+
+    @job
+    def run_job():
+        planetary_fact_sheet()
+
+    run_job.execute_in_process()

@@ -6,7 +6,7 @@ service_sheets = build('sheets', 'v4', credentials=get_creds())
 
 
 @op
-def s3_to_gsheet(context, df, url_s3):
+def df_to_gsheet(context, df):
     sheet = service_sheets.spreadsheets()
     sheet_id = '1g7PgVQqFSXcZhySLQahgA0Cz9AvMFVN71RF3F7z1SRk'  # noqa
 
@@ -43,7 +43,10 @@ def s3_to_gsheet(context, df, url_s3):
             metadata={
                 "text_metadata": "metadata for dataset append in gsheet",
                 "path": MetadataValue.path(f"https://docs.google.com/spreadsheets/d/{sheet_id}/"),
-                "dashboard_url": MetadataValue.url(url_s3[0].value)
+                "metadata": {
+                    "number of rows": df.shape[0],
+                    "columns": list(df),
+                }
             }
         )
     )

@@ -17,9 +17,8 @@ import requests
         "prefix": Field(String, is_required=True, description="Just prefix ex: my/path/data.parquet"),
         "endpoint": Field(String, is_required=False),
     },
-    out={"url_s3": Out()}
 )
-def df_to_s3(context, df, url=None):
+def df_to_s3(context, df):
     bucket = context.op_config.get('bucket')
     prefix = context.op_config.get('prefix')
     endpoint_url = context.op_config.get('endpoint')
@@ -37,12 +36,11 @@ def df_to_s3(context, df, url=None):
             metadata={
                 "text_metadata": "metadata for dataset storage in S3",
                 "path": MetadataValue.path(path_s3),
-                "dashboard_url": MetadataValue.url(url)
             }
         )
     )
 
-    return Output(path_s3)
+    return Output(None)
 
 
 @op(config_schema={
