@@ -1,5 +1,4 @@
 from dagster import op
-import os
 from pathlib import Path
 import subprocess
 
@@ -10,7 +9,7 @@ def get_name():
 
 
 @op
-def strip_new_lines_csv(context, filename):
+def strip_new_lines_csv(filename):
     path = Path(__file__).parent.parent.parent
     subprocess.check_output(['wc', '-l', f"{str(path)+'/bin/'+filename}"])
 
