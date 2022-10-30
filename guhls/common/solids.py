@@ -1,6 +1,7 @@
 from dagster import (
     Field,
     String,
+    Bool,
     Out,
     Output,
     op,
@@ -16,6 +17,7 @@ import requests
         "bucket": Field(String, is_required=True, description="Just the bucket ex: my-bucket"),
         "prefix": Field(String, is_required=True, description="Just prefix ex: my/path/data.parquet"),
         "endpoint": Field(String, is_required=False),
+        "to_parquet": Field(Bool, is_required=False, default_value=False),
     },
 )
 def df_to_s3(context, df):
@@ -27,7 +29,10 @@ def df_to_s3(context, df):
 
     path_s3 = f"s3://{bucket}/{prefix}"
 
-    df.to_parquet(path_s3, storage_options=storage_options)
+    if context.op_config.get('to_parquet'):
+        df.to_parquet(path_s3, storage_options=storage_options)
+    else:
+        df.to_csv(path_s3, storage_options=storage_options)
 
     context.log_event(
         AssetMaterialization(
