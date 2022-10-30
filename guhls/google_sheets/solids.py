@@ -10,28 +10,28 @@ def df_to_gsheet(context, df):
     sheet = service_sheets.spreadsheets()
     sheet_id = '1g7PgVQqFSXcZhySLQahgA0Cz9AvMFVN71RF3F7z1SRk'  # noqa
 
-    column = False
+    column = True
     if column:
         sheet.values().clear(
             spreadsheetId=sheet_id,
-            range='pag!A1:V',
+            range='ele!A1:V',
         ).execute()
 
         sheet.values().update(
             spreadsheetId=sheet_id,
-            range='pag!A1:V',
+            range='ele!A1:V',
             valueInputOption='USER_ENTERED',
             body={"values": [df.columns.tolist()]}
         ).execute()
 
     sheet.values().clear(
         spreadsheetId=sheet_id,
-        range='pag!A2:V',
+        range='ele!A2:V',
     ).execute()
 
     sheet.values().append(
         spreadsheetId=sheet_id,
-        range='pag!A2:V',
+        range='ele!A2:V',
         valueInputOption='USER_ENTERED',
         body={"values": df.values.tolist()}
     ).execute()
