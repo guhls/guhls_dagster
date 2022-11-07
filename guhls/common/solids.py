@@ -61,7 +61,7 @@ def df_to_s3(context, df):
     ),
     "params": Field(
         dict,
-        is_required=True,
+        is_required=False,
         description="Parameters that go in url requisition"
     ),
     "headers": Field(
