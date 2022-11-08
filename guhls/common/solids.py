@@ -67,6 +67,10 @@ def df_to_s3(context, df):
     "headers": Field(
         dict,
         is_required=False,
+    ),
+    "auth": Field(
+        dict,
+        is_required=False,
     )
 })
 def get_data_from_api(context):
@@ -75,42 +79,62 @@ def get_data_from_api(context):
     params = context.solid_config.get('params')
     headers = context.solid_config.get('headers')
 
+    username = context.op_config.get('auth')['username']
+    password = context.op_config.get('auth')['password']
+    auth = username, password
+
     url_endpoint = endpoint + path
 
-    resp = requests.get(url_endpoint, params=params, headers=headers).json()
+    resp = requests.get(url_endpoint, params=params, headers=headers, auth=auth).json()
     return resp
 
 
 if __name__ == '__main__':
-    from guhls.yelp.pipelines import yelp_data_pipe
-    from dotenv import load_dotenv
-    import os
+    @job
+    def run_op():
+        get_data_from_api()
 
-    load_dotenv()
-    API_KEY = os.environ.get('API_KEY')
-    BUCKET = os.environ.get('BUCKET')
-    PREFIX = os.environ.get('PREFIX')
-
-    yelp_data_pipe.execute_in_process(run_config={
-        "solids": {
+    run_op.execute_in_process(run_config={
+        "ops": {
             "get_data_from_api": {
                 "config": {
-                    "endpoint": "https://api.yelp.com/v3/",
-                    "path": "businesses/search",
-                    "params": {"term": "bars", "location": "São Paulo"},
-                    "headers": {"Authorization": f"Bearer {API_KEY}"}
-                }
-            },
-            "transform_data_from_yelp": {
-                "config": {
-                    "categories": True
-                }
-            },
-            "df_to_s3": {
-                "config": {
-                    "bucket": BUCKET,
-                    "prefix": PREFIX,
+                    "endpoint": "https://imunizacao-es.saude.gov.br/",
+                    "path": "_search",
+                    "auth": {"username": "imunizacao_public", "password": "qlto5t&7r_@+#Tlstigi"}
                 }
             }
         }
     })
+
+    # from guhls.yelp.pipelines import yelp_data_pipe
+    # from dotenv import load_dotenv
+    # import os
+    #
+    # load_dotenv()
+    # API_KEY = os.environ.get('API_KEY')
+    # BUCKET = os.environ.get('BUCKET')
+    # PREFIX = os.environ.get('PREFIX')
+    #
+    # yelp_data_pipe.execute_in_process(run_config={
+    #     "solids": {
+    #         "get_data_from_api": {
+    #             "config": {
+    #                 "endpoint": "https://api.yelp.com/v3/",
+    #                 "path": "businesses/search",
+    #                 "params": {"term": "bars", "location": "São Paulo"},
+    #                 "headers": {"Authorization": f"Bearer {API_KEY}"}
+    #             }
+    #         },
+    #         "transform_data_from_yelp": {
+    #             "config": {
+    #                 "categories": True
+    #             }
+    #         },
+    #         "df_to_s3": {
+    #             "config": {
+    #                 "bucket": BUCKET,
+    #                 "prefix": PREFIX,
+    #             }
+    #         }
+    #     }
+    # })
