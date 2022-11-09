@@ -80,7 +80,7 @@ def load_vac_covid19_to_s3(context, df):
     date = set(
         df['_source_@timestamp']
         .apply(
-            lambda date: dt.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
+            lambda timestamp: dt.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
             .date()
             .strftime("%Y-%m-%d")
         )
@@ -95,7 +95,9 @@ def load_vac_covid19_to_s3(context, df):
 
     s3.upload_file(
         file=buffer,
-        key=f'covid19-vac/{uf}/{"".join(date).split("-")[0]}-{"".join(date).split("-")[1]}/day_{"".join(date)[-1]}.parquet'
+        key=f'covid19-vac/{uf}/'
+            f'{"".join(date).split("-")[0]}-{"".join(date).split("-")[1]}'
+            f'/day_{"".join(date)[-1]}.parquet'
     )
 
     yield Output(None)
