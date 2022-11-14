@@ -57,7 +57,7 @@ def get_data_vac_covid19(context):
             params = {}
             url += "/scroll"
         else:
-            return pd.json_normalize(data_json['hits'], sep='_', record_path='hits')
+            return pd.json_normalize(data_json['hits'], sep='_', record_path='hits').astype("object")
 
         if data_json.get('hits', None) is None:
             break
@@ -66,28 +66,40 @@ def get_data_vac_covid19(context):
         lst_dfs.append(df)
 
     try:
-        df_concated = pd.concat(lst_dfs).reset_index(drop=True)
+        df_concated = pd.concat(lst_dfs).reset_index(drop=True).astype("object")
     except ValueError:
-        raise "No objects to concatenate, Verify if has data"
+        raise "No objects to concatenate, Verify scroll option in config schema"
 
     return df_concated
 
 
+@op
+def modify_covid19_vac_df(df):
+    columns_names = list(df)
+    refactor_columns = [
+        *map(
+            lambda string: string[1:].replace("source_", "").replace("@", "")
+            if string.startswith("_") else string, columns_names
+        )]
+
+    df.columns = refactor_columns
+
+    df['uf'] = df['estabelecimento_uf']
+
+    date = dt.datetime.strptime(df['timestamp'][0], "%Y-%m-%dT%H:%M:%S.%fZ")
+    df['year'] = date.date().strftime("%Y")
+    df['month'] = date.date().strftime("%m")
+    df['day'] = date.date().strftime("%d")
+    return df
+
+
 @op(required_resource_keys={"s3_resource"})
-def load_vac_covid19_to_s3(context, df):
+def load_covid19_vac_to_s3(context, df):
     s3 = context.resources.s3_resource()
 
-    date = set(
-        df['_source_@timestamp']
-        .apply(
-            lambda timestamp: dt.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ")
-            .date()
-            .strftime("%Y-%m-%d")
-        )
-    )
-    assert len(date) == 1, "DataFrame has more than one date in the timestamp"
-
-    uf = "".join(set(df['_source_estabelecimento_uf']))
+    date = dt.datetime.strptime(
+        df['timestamp'][0], "%Y-%m-%dT%H:%M:%S.%fZ"
+    ).date()
 
     parquet_buffer = io.BytesIO()
     df.to_parquet(parquet_buffer, engine='pyarrow', index=False)
@@ -95,9 +107,12 @@ def load_vac_covid19_to_s3(context, df):
 
     s3.upload_file(
         file=buffer,
-        key=f'covid19-vac/{uf}/'
-            f'{"".join(date).split("-")[0]}-{"".join(date).split("-")[1]}'
-            f'/day_{"".join(date)[-1]}.parquet'
+        key=f'covid19-vac/'
+            f'uf={df["uf"][0]}/'
+            f'year={date.year}/'
+            f'month={date.strftime("%m")}/'
+            f'day={date.strftime("%d")}/'
+            f'data.parquet'
     )
 
     yield Output(None)

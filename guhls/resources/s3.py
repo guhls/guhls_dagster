@@ -7,7 +7,7 @@ class S3ResourceConstructor:
         self.client_s3 = boto3.client('s3')
 
     def upload_file(self, file, key):
-        self.client_s3.upload_fileobj(Bucket="guhls-dagster", Fileobj=file, Key=key)
+        self.client_s3.upload_fileobj(Bucket="guhls-lake", Fileobj=file, Key=key)
 
 
 @resource()
