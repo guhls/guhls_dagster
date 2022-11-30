@@ -85,6 +85,7 @@ def modify_covid19_vac_df(df):
     df.columns = refactor_columns
 
     df['uf'] = df['estabelecimento_uf']
+    df['paciente_idade'] = df['paciente_idade'].astype('float')
 
     date = dt.datetime.strptime(df['timestamp'][0], "%Y-%m-%dT%H:%M:%S.%fZ")
     df['year'] = date.date().strftime("%Y")
