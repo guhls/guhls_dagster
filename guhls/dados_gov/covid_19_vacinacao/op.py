@@ -36,7 +36,7 @@ def get_data_vac_covid19(context):
                 "bool": {
                     "must": [
                         {"match": {"estabelecimento_uf": UF.upper()}},
-                        {"match": {"@timestamp": date}}
+                        {"match": {"vacina_dataAplicacao": date}}
                     ],
                 }
             },
