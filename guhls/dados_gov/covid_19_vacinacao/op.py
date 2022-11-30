@@ -87,7 +87,7 @@ def modify_covid19_vac_df(df):
     df['uf'] = df['estabelecimento_uf']
     df['paciente_idade'] = df['paciente_idade'].astype('float')
 
-    date = dt.datetime.strptime(df['timestamp'][0], "%Y-%m-%dT%H:%M:%S.%fZ")
+    date = dt.datetime.strptime(df['vacina_dataAplicacao'][0], "%Y-%m-%dT%H:%M:%S.%fZ")
     df['year'] = date.date().strftime("%Y")
     df['month'] = date.date().strftime("%m")
     df['day'] = date.date().strftime("%d")
@@ -99,7 +99,7 @@ def load_covid19_vac_to_s3(context, df):
     s3 = context.resources.s3_resource()
 
     date = dt.datetime.strptime(
-        df['timestamp'][0], "%Y-%m-%dT%H:%M:%S.%fZ"
+        df['vacina_dataAplicacao'][0], "%Y-%m-%dT%H:%M:%S.%fZ"
     ).date()
 
     parquet_buffer = io.BytesIO()
