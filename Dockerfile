@@ -1,15 +1,18 @@
 FROM python:3.10-bullseye
 
-RUN pip install dagit dagster
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
 WORKDIR /app
 
-COPY workspace.yaml .
+COPY . /app
 
-RUN mkdir /dagster_home
+ENV DAGSTER_HOME=/app/dagster_home/
+
+RUN mkdir -p $DAGSTER_HOME
+
+RUN touch $DAGSTER_HOME/dagster.yaml
 
 EXPOSE 3000
 
-RUN export DAGSTER_HOME=~/dagster_home
-
-CMD ["bash", "-c", "dagit -w worskpace.yaml -h 0.0.0.0 -p 3000 & dagster-daemon run"]
+CMD ["bash", "-c", "dagit -w workspace.yaml -h 0.0.0.0 -p 3000 & dagster-daemon run"]
