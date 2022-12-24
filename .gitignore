@@ -157,4 +157,5 @@ credentials.json
 
 # My exceptions
 *.sqlite3
+_personal_codes/
 
