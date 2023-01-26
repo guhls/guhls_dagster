@@ -84,8 +84,10 @@ def modify_covid19_vac_df(df):
 
     df.columns = refactor_columns
 
+    df['sort'] = df['sort'].apply(lambda row: list(row)[0])
+
     df['uf'] = df['estabelecimento_uf']
-    df['paciente_idade'] = df['paciente_idade'].astype('float')
+    df['paciente_idade'] = df['paciente_idade'].astype('O')
 
     date = dt.datetime.strptime(df['vacina_dataAplicacao'][0], "%Y-%m-%dT%H:%M:%S.%fZ")
     df['year'] = date.date().strftime("%Y")
